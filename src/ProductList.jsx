@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import './ProductList.css'
 import CartItem from './CartItem';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { addItem } from './CartSlice';
+
 function ProductList({ onHomeClick }) {
     const [showCart, setShowCart] = useState(false);
     const [showPlants, setShowPlants] = useState(false); // State to control the visibility of the About Us page
     const [addedToCart, setAddedToCart] = useState({});
 
     const dispatch = useDispatch();
+    const cartItems = useSelector(state => state.cart?.items || []);
+
+    const calculateTotalQuantity = () => {
+        return cartItems ? cartItems.reduce((total, item) => total + (item.quantity || 0), 0) : 0;
+    };
 
     const plantsArray = [
         {
@@ -219,11 +225,11 @@ function ProductList({ onHomeClick }) {
     ];
     const styleObj = {
         backgroundColor: '#4CAF50',
-        color: '#fff!important',
+        color: '#fff',
         padding: '15px',
         display: 'flex',
         justifyContent: 'space-between',
-        alignIems: 'center',
+        alignItems: 'center',
         fontSize: '20px',
     }
     const styleObjUl = {
@@ -283,7 +289,12 @@ function ProductList({ onHomeClick }) {
                 </div>
                 <div style={styleObjUl}>
                     <div> <a href="#" onClick={(e) => handlePlantsClick(e)} style={styleA}>Plants</a></div>
-                    <div> <a href="#" onClick={(e) => handleCartClick(e)} style={styleA}><h1 className='cart'><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" id="IconChangeColor" height=[...]</svg></h1></a></div>
+                    <div style={{ position: 'relative' }}>
+                      <button aria-label="Open cart" className="cart-button" onClick={(e) => handleCartClick(e)}>
+                        🛒
+                      </button>
+                      <div className="cart-badge">{calculateTotalQuantity()}</div>
+                    </div>
                 </div>
             </div>
             {!showCart ? (
@@ -305,12 +316,13 @@ function ProductList({ onHomeClick }) {
           <div className="product-title">{plant.name}</div> {/* Display plant name */}
           {/* Display other plant details like description and cost */}
           <div className="product-description">{plant.description}</div> {/* Display plant description */}
-          <div className="product-cost">${plant.cost}</div> {/* Display plant cost */}
+          <div className="product-cost">{plant.cost}</div> {/* Display plant cost */}
           <button
-            className="product-button"
+            className={`product-button ${addedToCart[plant.name] ? 'disabled' : ''}`}
             onClick={() => handleAddToCart(plant)} // Handle adding plant to cart
+            disabled={!!addedToCart[plant.name]}
           >
-            Add to Cart
+            {addedToCart[plant.name] ? 'Added to Cart' : 'Add to Cart'}
           </button>
         </div>
       ))}
